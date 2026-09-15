@@ -32,9 +32,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const data = await res.json();
         
+        let reasonsHtml = '';
+        if (data.reasons && data.reasons.length > 0) {
+            reasonsHtml = '<ul style="padding-left: 20px; font-size: 11px;">' + 
+                          data.reasons.map(r => `<li>${r}</li>`).join('') + 
+                          '</ul>';
+        }
+
         statusMsg.innerHTML = `
             Score: <span class="${data.level}">${data.risk_score}/100</span><br>
             Status: <span class="${data.level}">${data.level.toUpperCase()}</span>
+            ${reasonsHtml}
         `;
     } catch (err) {
         statusMsg.innerHTML = `<span class="error">Fail-safe: Backend unavailable or error. (${err.message})</span>`;
