@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>ScamGuard AI</title>
+    <style>
+        body { width: 320px; padding: 12px; font-family: -apple-system, sans-serif; }
+        #url-container { font-size: 12px; color: #555; word-wrap: break-word; margin-bottom: 12px; }
+        .safe { color: #10b981; font-weight: bold; }
+        .suspicious { color: #f59e0b; font-weight: bold; }
+        .dangerous { color: #ef4444; font-weight: bold; }
+        .error { color: #6b7280; font-style: italic; }
+        .hidden { display: none; }
+        #status-card { padding: 10px; background: #f3f4f6; border-radius: 6px; }
+    </style>
+</head>
+<body>
+    <h3 style="margin-top:0;">ScamGuard AI</h3>
+    <div id="url-container">Loading...</div>
+    <div id="status-card">
+        <div id="status-msg">Scanning backend...</div>
+    </div>
+    <script src="popup.js"></script>
+</body>
+</html>
