@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>ScamGuard AI - Warning</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; background: #fef2f2; color: #111827; padding: 40px; display: flex; justify-content: center; }
+        .card { max-width: 600px; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); border-top: 4px solid #ef4444; }
+        h1 { color: #b91c1c; margin-top: 0; }
+        .score { font-size: 24px; font-weight: bold; margin: 20px 0; }
+        .reasons { font-size: 14px; margin-bottom: 20px; }
+        .actions { margin-top: 30px; display: flex; gap: 15px; }
+        button { padding: 10px 15px; border-radius: 4px; border: none; cursor: pointer; font-weight: 500; }
+        .btn-back { background: #3b82f6; color: white; }
+        .btn-continue { background: transparent; color: #6b7280; font-size: 12px; text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>⚠ WEBSITE CÓ NGUY CƠ LỪA ĐẢO</h1>
+        <p>Hệ thống của chúng tôi phát hiện trang web này có thể đánh cắp thông tin của bạn.</p>
+        <div class="score">Risk: <span id="risk-score"></span>/100</div>
+        <h3>Lý do:</h3>
+        <ul id="reasons-list" class="reasons"></ul>
+        
+        <div class="actions">
+            <button id="btn-back" class="btn-back">Quay về trang an toàn</button>
+            <button id="btn-continue" class="btn-continue">Vẫn tiếp tục truy cập (Không an toàn)</button>
+        </div>
+    </div>
+    <script src="warning.js"></script>
+</body>
+</html>
