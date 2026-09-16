@@ -1,10 +1,12 @@
 
 from src.api.domain_service import DomainService
 from src.api.brand_detector import BrandDetector
+from src.api.content_ai import ContentAI
 
 class CoreRiskEngine:
     def __init__(self):
         self.brand_detector = BrandDetector()
+        self.content_ai = ContentAI()
         
     def evaluate(self, url: str, url_features: dict, page_features: dict) -> dict:
         score = 0.0
@@ -58,6 +60,20 @@ class CoreRiskEngine:
             score += brand_result["score"] # reward
             reasons.append(brand_result["reason"])
 
+
+        # Content AI Analysis
+        content_signals = self.content_ai.analyze(page_texts)
+        content_score = (content_signals["urgency"] * 15 + 
+                         content_signals["financial_scam"] * 20 + 
+                         content_signals["credential_request"] * 10)
+                         
+        if content_score > 0:
+            score += content_score
+            if content_signals["urgency"] > 0.5:
+                reasons.append("High urgency language detected")
+            if content_signals["financial_scam"] > 0.5:
+                reasons.append("Suspicious financial/prize requests")
+
         # 2. DOM Analysis
         if page_features:
             dom_score = 0
@@ -100,7 +116,7 @@ class CoreRiskEngine:
             "modules": {
                 "url": url_score / 40.0, # normalized 0-1
                 "domain": domain_score / 50.0 if not domain_result.get("known_safe") else 0.0,
-                "content": None,
+                "content": content_score / 45.0,
                 "vision": None
             }
         }
