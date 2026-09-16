@@ -119,3 +119,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse(scanDOM());
     }
 });
+
+
+// Trigger scan on load
+chrome.runtime.sendMessage({ action: 'scanDOMResult', data: scanDOM() });
