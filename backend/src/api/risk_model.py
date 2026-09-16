@@ -2,11 +2,13 @@
 from src.api.domain_service import DomainService
 from src.api.brand_detector import BrandDetector
 from src.api.content_ai import ContentAI
+from src.api.vision_detector import VisionDetector
 
 class CoreRiskEngine:
     def __init__(self):
         self.brand_detector = BrandDetector()
         self.content_ai = ContentAI()
+        self.vision_detector = VisionDetector()
         
     def evaluate(self, url: str, url_features: dict, page_features: dict) -> dict:
         score = 0.0
@@ -60,6 +62,16 @@ class CoreRiskEngine:
             score += brand_result["score"] # reward
             reasons.append(brand_result["reason"])
 
+
+
+        # Vision AI Analysis (if screenshot provided)
+        vision_score = 0.0
+        if 'screenshot' in page_features and page_features['screenshot']:
+            vision_result = self.vision_detector.analyze(page_features['screenshot'])
+            vision_score = vision_result["score"]
+            if vision_score > 0:
+                score += vision_score
+                reasons.append(f"Visual identity impersonates {vision_result['brand_logo']}")
 
         # Content AI Analysis
         content_signals = self.content_ai.analyze(page_texts)
@@ -117,6 +129,6 @@ class CoreRiskEngine:
                 "url": url_score / 40.0, # normalized 0-1
                 "domain": domain_score / 50.0 if not domain_result.get("known_safe") else 0.0,
                 "content": content_score / 45.0,
-                "vision": None
+                "vision": vision_score / 20.0 if 'screenshot' in page_features else None
             }
         }
