@@ -12,10 +12,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         urlContainer.textContent = tab.url;
 
+        
         // Skip internal/chrome URLs
         if (tab.url.startsWith("chrome://") || tab.url.startsWith("edge://")) {
             statusMsg.textContent = "Internal browser page.";
             return;
+        }
+
+        // Get DOM metrics from content script
+        let pageDOM = {};
+        try {
+            pageDOM = await chrome.tabs.sendMessage(tab.id, {action: "scanDOM"});
+        } catch(e) {
+            console.log("Could not ping content script, maybe not injected yet or restricted page.", e);
         }
 
         const res = await fetch("http://127.0.0.1:8000/api/v1/scan", {
@@ -24,9 +33,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             body: JSON.stringify({
                 schema_version: 1,
                 url: tab.url,
-                page: {}
+                page: pageDOM
             })
         });
+});
 
         if (!res.ok) throw new Error(`Backend error ${res.status}`);
 
