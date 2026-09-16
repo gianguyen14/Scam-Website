@@ -15,7 +15,7 @@ def scan_url(request: ScanRequest):
     url_features = extract_url_features(request.url)
     page_features = request.page or {}
     
-    result = engine.evaluate(url_features, page_features)
+    result = engine.evaluate(request.url, url_features, page_features)
     
     return ScanResponse(
         schema_version=1,

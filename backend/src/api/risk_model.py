@@ -1,9 +1,11 @@
 
+from src.api.domain_service import DomainService
+
 class CoreRiskEngine:
     def __init__(self):
         pass
         
-    def evaluate(self, url_features: dict, page_features: dict) -> dict:
+    def evaluate(self, url: str, url_features: dict, page_features: dict) -> dict:
         score = 0.0
         reasons = []
         
@@ -23,6 +25,25 @@ class CoreRiskEngine:
         url_score = min(url_score, 40.0)
         score += url_score
         
+        
+        # Domain Analysis
+        domain_svc = DomainService()
+        domain = domain_svc.extract_domain(url)
+        domain_result = domain_svc.evaluate(domain)
+        
+        domain_score = domain_result.get("score", 0.0)
+        reasons.extend(domain_result.get("reasons", []))
+        
+        if domain_result.get("known_malicious"):
+            score = 100
+        else:
+            score += domain_score
+            
+        if domain_result.get("known_safe"):
+            # Hardcap at 20 if domain is globally whitelisted
+            score = min(score, 20)
+            reasons.append("Domain is verified safe")
+
         # 2. DOM Analysis
         if page_features:
             dom_score = 0
@@ -63,7 +84,7 @@ class CoreRiskEngine:
             "reasons": reasons,
             "modules": {
                 "url": url_score / 40.0, # normalized 0-1
-                "domain": None,
+                "domain": domain_score / 50.0 if not domain_result.get("known_safe") else 0.0,
                 "content": None,
                 "vision": None
             }
