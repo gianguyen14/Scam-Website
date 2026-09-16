@@ -22,7 +22,7 @@ def scan_url(request: ScanRequest):
         risk_score=result["score"],
         level=result["level"],
         confidence=0.85,
-        detected_brand=None,
+        detected_brand=result.get("detected_brand"),
         reasons=result["reasons"],
         modules=ModulesResult(
             url=result["modules"]["url"],

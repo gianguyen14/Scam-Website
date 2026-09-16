@@ -1,9 +1,10 @@
 
 from src.api.domain_service import DomainService
+from src.api.brand_detector import BrandDetector
 
 class CoreRiskEngine:
     def __init__(self):
-        pass
+        self.brand_detector = BrandDetector()
         
     def evaluate(self, url: str, url_features: dict, page_features: dict) -> dict:
         score = 0.0
@@ -44,6 +45,19 @@ class CoreRiskEngine:
             score = min(score, 20)
             reasons.append("Domain is verified safe")
 
+
+        # Brand Impersonation Analysis
+        page_texts = str(page_features.get('title', '')) + " " + " ".join(page_features.get('button_labels', []))
+        brand_result = self.brand_detector.detect(page_texts, domain)
+        detected_brand = brand_result["detected_brand"]
+        
+        if brand_result["mismatch"]:
+            score += brand_result["score"]
+            reasons.append(brand_result["reason"])
+        elif brand_result["score"] < 0:
+            score += brand_result["score"] # reward
+            reasons.append(brand_result["reason"])
+
         # 2. DOM Analysis
         if page_features:
             dom_score = 0
@@ -81,6 +95,7 @@ class CoreRiskEngine:
         return {
             "score": risk_score,
             "level": level,
+            "detected_brand": detected_brand,
             "reasons": reasons,
             "modules": {
                 "url": url_score / 40.0, # normalized 0-1
