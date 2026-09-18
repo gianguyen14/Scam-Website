@@ -1,7 +1,6 @@
-import urllib.parse
-import re
 import math
-from typing import Dict, Any
+import re
+import urllib.parse
 
 SUSPICIOUS_TLDS = {'.xyz', '.top', '.club', '.stream', '.gq', '.ml', '.cf', '.tk', '.ga', '.zip', '.mov'}
 SUSPICIOUS_KEYWORDS = {'login', 'verify', 'secure', 'account', 'wallet', 'bank', 'update', 'auth', 'support'}

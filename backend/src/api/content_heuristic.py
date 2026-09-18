@@ -1,13 +1,12 @@
-from typing import Dict, Any
 
-class ContentAI:
+class ContentHeuristic:
     def __init__(self):
         # Heuristic keywords for mock classification
         self.urgency_kws = ["khẩn cấp", "ngay lập tức", "khóa tài khoản", "tạm ngưng", "urgent", "suspend", "immediately", "24h"]
         self.financial_kws = ["nhận thưởng", "chuyển khoản", "trúng giải", "nạp tiền", "rút tiền", "crypto", "bitcoin", "investment"]
         self.credential_kws = ["mật khẩu", "đăng nhập", "xác thực", "otp", "password", "verify", "login"]
         
-    def analyze(self, text: str) -> Dict[str, float]:
+    def analyze(self, text: str) -> dict[str, float]:
         text = text.lower()
         
         def calculate_score(kws):

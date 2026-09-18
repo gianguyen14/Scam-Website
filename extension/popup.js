@@ -12,7 +12,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         urlContainer.textContent = tab.url;
 
-        
         // Skip internal/chrome URLs
         if (tab.url.startsWith("chrome://") || tab.url.startsWith("edge://")) {
             statusMsg.textContent = "Internal browser page.";
@@ -36,25 +35,36 @@ document.addEventListener("DOMContentLoaded", async () => {
                 page: pageDOM
             })
         });
-});
 
         if (!res.ok) throw new Error(`Backend error ${res.status}`);
 
         const data = await res.json();
         
-        let reasonsHtml = '';
-        if (data.reasons && data.reasons.length > 0) {
-            reasonsHtml = '<ul style="padding-left: 20px; font-size: 11px;">' + 
-                          data.reasons.map(r => `<li>${r}</li>`).join('') + 
-                          '</ul>';
-        }
+        statusMsg.innerHTML = ""; // Clear
+        const scoreLine = document.createElement("div");
+        scoreLine.textContent = `Score: ${data.risk_score}/100`;
+        scoreLine.className = data.level;
+        
+        const statusLine = document.createElement("div");
+        statusLine.textContent = `Status: ${data.level.toUpperCase()}`;
+        statusLine.className = data.level;
+        
+        statusMsg.appendChild(scoreLine);
+        statusMsg.appendChild(statusLine);
 
-        statusMsg.innerHTML = `
-            Score: <span class="${data.level}">${data.risk_score}/100</span><br>
-            Status: <span class="${data.level}">${data.level.toUpperCase()}</span>
-            ${reasonsHtml}
-        `;
+        if (data.reasons && data.reasons.length > 0) {
+            const ul = document.createElement("ul");
+            ul.style.paddingLeft = "20px";
+            ul.style.fontSize = "11px";
+            data.reasons.forEach(r => {
+                const li = document.createElement("li");
+                li.textContent = r;
+                ul.appendChild(li);
+            });
+            statusMsg.appendChild(ul);
+        }
     } catch (err) {
-        statusMsg.innerHTML = `<span class="error">Fail-safe: Backend unavailable or error. (${err.message})</span>`;
+        statusMsg.textContent = `Fail-safe: Backend unavailable or error. (${err.message})`;
+        statusMsg.className = "error";
     }
 });

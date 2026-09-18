@@ -1,14 +1,15 @@
 
-from src.api.domain_service import DomainService
 from src.api.brand_detector import BrandDetector
-from src.api.content_ai import ContentAI
-from src.api.vision_detector import VisionDetector
+from src.api.content_heuristic import ContentHeuristic
+from src.api.domain_service import DomainService
+from src.api.vision_heuristic import VisionHeuristic
+
 
 class CoreRiskEngine:
     def __init__(self):
         self.brand_detector = BrandDetector()
-        self.content_ai = ContentAI()
-        self.vision_detector = VisionDetector()
+        self.content_heuristic = ContentHeuristic()
+        self.vision_heuristic = VisionHeuristic()
         
     def evaluate(self, url: str, url_features: dict, page_features: dict) -> dict:
         score = 0.0
@@ -66,15 +67,15 @@ class CoreRiskEngine:
 
         # Vision AI Analysis (if screenshot provided)
         vision_score = 0.0
-        if 'screenshot' in page_features and page_features['screenshot']:
-            vision_result = self.vision_detector.analyze(page_features['screenshot'])
+        if page_features.get('screenshot'):
+            vision_result = self.vision_heuristic.analyze(page_features['screenshot'])
             vision_score = vision_result["score"]
             if vision_score > 0:
                 score += vision_score
                 reasons.append(f"Visual identity impersonates {vision_result['brand_logo']}")
 
         # Content AI Analysis
-        content_signals = self.content_ai.analyze(page_texts)
+        content_signals = self.content_heuristic.analyze(page_texts)
         content_score = (content_signals["urgency"] * 15 + 
                          content_signals["financial_scam"] * 20 + 
                          content_signals["credential_request"] * 10)

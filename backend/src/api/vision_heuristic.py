@@ -1,10 +1,11 @@
-from typing import Dict, Any
+from typing import Any
 
-class VisionDetector:
+
+class VisionHeuristic:
     def __init__(self):
         pass
         
-    def analyze(self, image_data: str) -> Dict[str, Any]:
+    def analyze(self, image_data: str) -> dict[str, Any]:
         if not image_data:
             return {"brand_logo": None, "score": 0.0}
             

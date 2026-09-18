@@ -2,7 +2,13 @@ pyproject.toml
 src/__init__.py
 src/main.py
 src/api/__init__.py
+src/api/brand_detector.py
+src/api/content_heuristic.py
+src/api/domain_service.py
+src/api/risk_model.py
 src/api/routes.py
+src/api/url_detector.py
+src/api/vision_heuristic.py
 src/backend.egg-info/PKG-INFO
 src/backend.egg-info/SOURCES.txt
 src/backend.egg-info/dependency_links.txt
