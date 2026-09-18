@@ -24,7 +24,7 @@ server.listen(8080, async () => {
         browser = await puppeteer.launch({
             headless: "new",
             args: [
-                '--no-sandbox', 
+                '--no-sandbox', '--disable-web-security', 
                 '--disable-setuid-sandbox',
                 `--disable-extensions-except=${extensionPath}`,
                 `--load-extension=${extensionPath}`
