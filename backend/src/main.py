@@ -9,7 +9,8 @@ app = FastAPI(title="ScamGuard API", version="0.1.0")
 # Restrict CORS to typical extension scheme + localhost
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
+    allow_origins=['*',
+
         "http://localhost:8000",
         "http://127.0.0.1:8000"
     ],
