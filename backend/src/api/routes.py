@@ -1,7 +1,8 @@
 from fastapi import APIRouter
-from src.schemas.models import ScanRequest, ScanResponse, ModulesResult
-from src.api.url_detector import extract_url_features
+
 from src.api.risk_model import CoreRiskEngine
+from src.api.url_detector import extract_url_features
+from src.schemas.models import ModulesResult, ScanRequest, ScanResponse
 
 router = APIRouter()
 engine = CoreRiskEngine()

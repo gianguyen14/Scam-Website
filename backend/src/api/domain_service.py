@@ -1,6 +1,6 @@
-import re
 import urllib.parse
-from typing import Dict, Any
+from typing import Any
+
 
 class DomainService:
     def __init__(self):
@@ -12,10 +12,10 @@ class DomainService:
         try:
             parsed = urllib.parse.urlparse(url if "://" in url else "http://" + url)
             return parsed.hostname or ""
-        except:
+        except Exception:
             return ""
 
-    def evaluate(self, domain: str) -> Dict[str, Any]:
+    def evaluate(self, domain: str) -> dict[str, Any]:
         if not domain:
             return {"known_malicious": False, "score": 0.0}
             

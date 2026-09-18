@@ -1,6 +1,7 @@
-import os
 import json
-from typing import Dict, Any, Optional
+import os
+from typing import Any
+
 
 class BrandDetector:
     def __init__(self, registry_path="data/brand_registry"):
@@ -14,7 +15,7 @@ class BrandDetector:
                     with open(os.path.join(full_path, file), 'r') as f:
                         self.brands.append(json.load(f))
                         
-    def detect(self, text_signals: str, current_domain: str) -> Dict[str, Any]:
+    def detect(self, text_signals: str, current_domain: str) -> dict[str, Any]:
         text_signals = text_signals.lower()
         current_domain = current_domain.lower()
         
