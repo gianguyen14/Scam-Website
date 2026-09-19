@@ -18,7 +18,8 @@
   "host_permissions": [
     "http://127.0.0.1:8000/*",
     "http://localhost:8000/*",
-    "https://scam-website-u49m.vercel.app/*"
+    "https://www.gianguyen14.tech/*",
+    "https://gianguyen14.tech/*"
   ],
   "content_scripts": [
     {
