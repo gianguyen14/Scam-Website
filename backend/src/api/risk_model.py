@@ -82,7 +82,7 @@ class CoreRiskEngine:
         # 5. Content NLP AI
         content_prob = self.content_ai.analyze(page_texts).get("scam_probability", 0.0)
         content_score = 0.0
-        if content_prob > 0.6:
+        if content_prob >= 0.30:
             content_score = content_prob * 20
             score += content_score
             reasons.append(f"AI Content NLP detected scam language ({int(content_prob*100)}% certainty)")
