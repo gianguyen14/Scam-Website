@@ -76,8 +76,28 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                             })
                         });
                         
-                        responseData = await res.json();
-                                                setCacheResult(cacheKey, responseData);
+                        
+                    responseData = await res.json();
+                    
+                    // --- Ghi lại lịch sử cục bộ cho Local Dashboard ---
+                    chrome.storage.local.get({ scanHistory: [], totalScans: 0 }, (db) => {
+                        let history = db.scanHistory;
+                        let max_score = responseData.risk_score || 0;
+                        history.unshift({
+                            url: tabUrl,
+                            domain: new URL(tabUrl).hostname,
+                            score: max_score,
+                            level: responseData.level,
+                            time: new Date().toLocaleString()
+                        });
+                        // Giữ 100 lịch sử gần nhất
+                        if (history.length > 100) history.pop();
+                        chrome.storage.local.set({ scanHistory: history, totalScans: db.totalScans + 1 });
+                    });
+                    // ----------------------------------------------------
+                    
+                    setCacheResult(cacheKey, responseData);
+
                     } catch (err) {
                         console.error("Scan failed - degraded mode", err.message);
                         return;

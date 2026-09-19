@@ -63,6 +63,31 @@ document.addEventListener("DOMContentLoaded", async () => {
             });
             statusMsg.appendChild(ul);
         }
+
+        // Tích hợp Local Dashboard
+        chrome.storage.local.get({ scanHistory: [], totalScans: 0 }, (db) => {
+            document.getElementById("total-scans").textContent = db.totalScans;
+            const historyContainer = document.getElementById("history-container");
+            historyContainer.innerHTML = '<div style="font-weight:bold; font-size:12px; margin-bottom:5px; color:#4b5563">Lịch sử quét gần đây</div>';
+            
+            db.scanHistory.slice(0, 10).forEach(item => {
+                let div = document.createElement("div");
+                div.className = "history-item";
+                
+                let domainSpan = document.createElement("span");
+                domainSpan.textContent = item.domain.length > 25 ? item.domain.substring(0, 25) + '...' : item.domain;
+                domainSpan.title = item.url;
+                
+                let scoreSpan = document.createElement("span");
+                scoreSpan.className = item.level;
+                scoreSpan.textContent = item.score + "/100";
+                
+                div.appendChild(domainSpan);
+                div.appendChild(scoreSpan);
+                historyContainer.appendChild(div);
+            });
+        });
+
     } catch (err) {
         statusMsg.textContent = `Fail-safe: Backend unavailable or error. (${err.message})`;
         statusMsg.className = "error";

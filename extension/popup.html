@@ -4,22 +4,46 @@
     <meta charset="UTF-8">
     <title>ScamGuard AI</title>
     <style>
-        body { width: 320px; padding: 12px; font-family: -apple-system, sans-serif; }
-        #url-container { font-size: 12px; color: #555; word-wrap: break-word; margin-bottom: 12px; }
+        body { width: 340px; padding: 12px; font-family: -apple-system, sans-serif; background: #fff; margin:0;}
+        h3 { margin-top: 0; display:flex; align-items: center; gap: 8px; color: #1f2937; }
+        #url-container { font-size: 11px; color: #6b7280; word-wrap: break-word; margin-bottom: 12px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }
         .safe { color: #10b981; font-weight: bold; }
         .suspicious { color: #f59e0b; font-weight: bold; }
         .dangerous { color: #ef4444; font-weight: bold; }
         .error { color: #6b7280; font-style: italic; }
-        .hidden { display: none; }
-        #status-card { padding: 10px; background: #f3f4f6; border-radius: 6px; }
+        #status-card { padding: 12px; background: #f3f4f6; border-radius: 8px; font-size: 13px; line-height: 1.5; margin-bottom: 15px;}
+        .stats-box { display: flex; justify-content: space-between; background: #1e3a8a; color: white; padding: 10px; border-radius: 6px; font-size: 12px; }
+        .stats-num { font-size: 16px; font-weight: bold; }
+        .history-list { margin-top: 10px; border-top: 1px solid #e5e7eb; padding-top: 10px; max-height: 120px; overflow-y: auto; }
+        .history-item { font-size: 11px; display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed #e5e7eb; }
     </style>
 </head>
 <body>
-    <h3 style="margin-top:0;">ScamGuard AI</h3>
+    <h3>🛡️ ScamGuard AI</h3>
     <div id="url-container">Loading...</div>
+    
     <div id="status-card">
-        <div id="status-msg">Scanning backend...</div>
+        <div id="status-msg">
+            <span style="color:#6b7280">Đang khởi động AI phân tích...</span>
+        </div>
     </div>
+
+    <!-- Trạm Telemetry Local -->
+    <div class="stats-box">
+        <div>
+            <div>Web đã phân tích</div>
+            <div class="stats-num" id="total-scans">0</div>
+        </div>
+        <div style="text-align: right;">
+            <div>Cơ sở dữ liệu</div>
+            <div class="stats-num" style="color: #60a5fa">Web3 & Global</div>
+        </div>
+    </div>
+
+    <div class="history-list" id="history-container">
+        <!-- Lịch sử đổ vào đây -->
+    </div>
+
     <script src="popup.js"></script>
 </body>
 </html>
