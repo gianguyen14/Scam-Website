@@ -8,5 +8,10 @@
     "vietcombank",
     "vcb",
     "ng\u00e2n h\u00e0ng ngo\u1ea1i th\u01b0\u01a1ng"
+  ],
+  "known_dom_hashes": [
+    "deadbeef",
+    "1a2b3c4d",
+    "mockhash_vcb_login"
   ]
 }

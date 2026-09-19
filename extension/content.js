@@ -1,4 +1,68 @@
 
+
+// --- MÔ-ĐUN PHÂN TÍCH HÀNH VI (Behavioral Analysis) ---
+let userBehavior = {
+    rapidScroll: false,
+    pasteInSensitiveField: false,
+    abnormalInteractions: 0
+};
+
+// Theo dõi hành vi paste vào input ẩn/nhạy cảm
+document.addEventListener('paste', (e) => {
+    if (e.target.tagName === 'INPUT') {
+        const type = e.target.type.toLowerCase();
+        if (type === 'password' || type === 'tel' || e.target.name.toLowerCase().includes('otp')) {
+            userBehavior.pasteInSensitiveField = true;
+            console.log("[Behavioral] Phát hiện paste dữ liệu nhạy cảm");
+            // Gửi cảnh báo phụ lên background
+            chrome.runtime.sendMessage({ 
+                action: 'behaviorAlert', 
+                alert: 'paste_sensitive',
+                url: window.location.href
+            });
+        }
+    }
+});
+
+let scrollCount = 0;
+document.addEventListener('scroll', () => {
+    scrollCount++;
+    if (scrollCount > 50) { 
+        userBehavior.rapidScroll = true; 
+    }
+    // Giảm dần count để chỉ bắt cuộn thực sự nhanh
+    setTimeout(() => { if(scrollCount > 0) scrollCount--; }, 100);
+}, {passive: true});
+
+
+// --- MÔ-ĐUN ADVANCED VISION (DOM Structural Hashing) ---
+// Phishing site thường copy nguyên cấu trúc thẻ HTML của site gốc.
+// Hàm này trích xuất cấu trúc DOM (chỉ lấy TÊN THẺ, bỏ qua nội dung/chữ)
+function getDOMTreeHash(node, maxDepth, currentDepth=0) {
+    if (currentDepth > maxDepth || !node) return "";
+    let hash = node.nodeName + "|";
+    for (let i = 0; i < node.childNodes.length; i++) {
+        let child = node.childNodes[i];
+        if (child.nodeType === 1) { // ELEMENT_NODE
+            // Bỏ qua các thẻ ít ý nghĩa cấu trúc giao diện
+            if (!['SCRIPT', 'STYLE', 'META', 'LINK', 'NOSCRIPT'].includes(child.nodeName)) {
+                hash += getDOMTreeHash(child, maxDepth, currentDepth + 1);
+            }
+        }
+    }
+    return hash;
+}
+
+// Băm chuỗi bằng thuật toán FNV-1a (nhẹ, nhanh trên trình duyệt)
+function fnv1aHash(str) {
+    let hash = 2166136261;
+    for (let i = 0; i < str.length; i++) {
+        hash ^= str.charCodeAt(i);
+        hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+    }
+    return hash >>> 0;
+}
+
 // Phase 2: DOM Scanner (Privacy First)
 
 function scanDOM() {
@@ -109,6 +173,11 @@ function scanDOM() {
             }
         }
     });
+
+    
+    // Thêm đặc trưng từ Advanced Vision & Behavioral
+    data.dom_hash = fnv1aHash(getDOMTreeHash(document.body, 10)).toString(16);
+    data.behavior = userBehavior;
 
     // DO NOT Read input.value in accordance with privacy rules.
     return data;

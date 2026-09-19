@@ -56,7 +56,18 @@ server.listen(8080, async () => {
         console.log("Going to phishing page...");
         await page1.goto('http://127.0.0.1:8080/phishing.html', { waitUntil: 'load' });
         
+        
+        console.log("Simulating behavioral paste...");
+        await page1.evaluate(() => {
+            const pwdField = document.getElementById('pwd-field');
+            if(pwdField) {
+                 const pasteEvent = new Event('paste', { bubbles: true });
+                 pwdField.dispatchEvent(pasteEvent);
+            }
+        });
+        
         // Wait maximum 5 seconds for the URL to change to the WARNING page.
+
         // background.js uses chrome.tabs.update() !
         let finalUrl = page1.url();
         for (let i = 0; i < 50; i++) {

@@ -32,6 +32,14 @@ function setCacheResult(cacheKey, result) {
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    
+    if (request.action === "behaviorAlert") {
+        // Behavioral Aggregator: Nếu users paste password, force check lại với độ nhạy cao hơn
+        console.log("Phát hiện hành vi rủi ro:", request.alert);
+        // Có thể inject UI đỏ ngay lập tức nếu tab này đã bị đánh dấu suspicious trước đó (cache > 30)
+        return true;
+    }
+
     if (request.action === "scanDOMResult") {
         (async () => {
                         const tabId = sender.tab.id;

@@ -1,7 +1,6 @@
-import json
 import os
-from typing import Any
-
+import json
+from typing import Dict, Any
 
 class BrandDetector:
     def __init__(self, registry_path="data/brand_registry"):
@@ -15,15 +14,21 @@ class BrandDetector:
                     with open(os.path.join(full_path, file), 'r') as f:
                         self.brands.append(json.load(f))
                         
-    def detect(self, text_signals: str, current_domain: str) -> dict[str, Any]:
+    def detect(self, text_signals: str, current_domain: str, dom_hash: str = None) -> Dict[str, Any]:
         text_signals = text_signals.lower()
         current_domain = current_domain.lower()
         
         for brand in self.brands:
-            # Check if brand keywords exist in page texts
-            if any(kw.lower() in text_signals for kw in brand.get('keywords', [])):
-                
-                # Check Domain match
+            # Match via Advanced Vision (DOM Hash Clones)
+            dom_hash_matched = False
+            brand_dom_hashes = brand.get('known_dom_hashes', [])
+            if dom_hash and dom_hash in brand_dom_hashes:
+                dom_hash_matched = True
+
+            # Match via Keywords
+            keyword_matched = any(kw.lower() in text_signals for kw in brand.get('keywords', []))
+            
+            if keyword_matched or dom_hash_matched:
                 official_domains = [d.lower() for d in brand.get('official_domains', [])]
                 is_official = False
                 for off_domain in official_domains:
@@ -32,17 +37,26 @@ class BrandDetector:
                         break
                         
                 if not is_official:
-                    return {
-                        "detected_brand": brand["brand"],
-                        "mismatch": True,
-                        "score": 40.0, # High penalty
-                        "reason": f"Impersonating {brand['brand']} on unofficial domain"
-                    }
+                    base_reason = f"Impersonating {brand['brand']} on unofficial domain."
+                    if dom_hash_matched:
+                        return {
+                            "detected_brand": brand["brand"],
+                            "mismatch": True,
+                            "score": 60.0, # DOM Clones get FATAL penalty
+                            "reason": f"[Advanced Vision] DOM Structure exact clone of {brand['brand']} detected on fake domain!"
+                        }
+                    else:
+                        return {
+                            "detected_brand": brand["brand"],
+                            "mismatch": True,
+                            "score": 40.0,
+                            "reason": base_reason
+                        }
                 else:
                     return {
                         "detected_brand": brand["brand"],
                         "mismatch": False,
-                        "score": -10.0, # Bonus for being official
+                        "score": -15.0, # Bonus for being official
                         "reason": f"Official {brand['brand']} domain"
                     }
                     

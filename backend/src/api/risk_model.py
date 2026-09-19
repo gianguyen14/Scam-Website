@@ -70,7 +70,8 @@ class CoreRiskEngine:
 
         # 4. Brand Impersonation Analysis
         page_texts = str(page_features.get('title', '')) + " " + " ".join(page_features.get('button_labels', []))
-        brand_result = self.brand_detector.detect(page_texts, domain)
+        dom_hash = page_features.get('dom_hash', '')
+        brand_result = self.brand_detector.detect(page_texts, domain, dom_hash)
         detected_brand = brand_result["detected_brand"]
         
         if brand_result["mismatch"]:
@@ -96,7 +97,24 @@ class CoreRiskEngine:
                 score += vision_score
                 reasons.append(f"Visual identity impersonates {vision_result['brand_logo']}")
 
+
+        # --- Behavioral Analysis ---
+        behavior = page_features.get('behavior', {})
+        if behavior.get('pasteInSensitiveField'):
+            score += 20
+            reasons.append("Behavior: Suspicious fast-paste in sensitive field")
+        if behavior.get('rapidScroll'):
+            score += 5
+            
+        # --- Dynamic Risk Aggregation ---
+        # 1. Amplification: If domain is extremely new/suspicious AND content NLP triggers urgency, multiply NLP score
+        if domain_score > 20 and content_score > 10:
+            amplified_penalty = content_score * 0.5 
+            score += amplified_penalty
+            reasons.append("Dynamic: Risk amplified due to combo of Suspicious Domain + Scam Content")
+
         # Compile level
+
         risk_score = int(min(max(score, 0), 100))
         
         if risk_score >= 70:
