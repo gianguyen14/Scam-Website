@@ -34,9 +34,12 @@ function setCacheResult(cacheKey, result) {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     
     if (request.action === "behaviorAlert") {
-        // Behavioral Aggregator: Nếu users paste password, force check lại với độ nhạy cao hơn
         console.log("Phát hiện hành vi rủi ro:", request.alert);
-        // Có thể inject UI đỏ ngay lập tức nếu tab này đã bị đánh dấu suspicious trước đó (cache > 30)
+        chrome.tabs.update(sender.tab.id, { 
+            url: chrome.runtime.getURL("warning.html") + 
+                 "?url=" + encodeURIComponent(sender.tab.url) + 
+                 "&score=99&reasons=" + encodeURIComponent(JSON.stringify(["[Behavioral] Paste mật khẩu hoặc OTP vào website không xác định."]))
+        });
         return true;
     }
 
