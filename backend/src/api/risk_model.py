@@ -59,9 +59,7 @@ class CoreRiskEngine:
         else:
             score += domain_score
             
-        if domain_result.get("known_safe"):
-            score = min(score, 20)
-            reasons.append("Domain is verified safe")
+
             
         # 3. DOM Metadata Rules (Privacy Safe)
         if page_features:
@@ -128,20 +126,41 @@ class CoreRiskEngine:
             score += amplified_penalty
             reasons.append("Dynamic: Risk amplified due to combo of Suspicious Domain + Scam Content")
 
-        # Compile level
+        
+        # --- 6. Explicit Heuristics: Gambling, Betting & Task Scams (Nhiệm vụ đơn ảo) ---
+        page_text_lower = nlp_payload.lower()
+        
+        gambling_kws = ["tài xỉu", "nổ hũ", "cá cược", "đá gà", "casino", "đánh bài", "nhà cái", "thể thao ảo", "lô đề"]
+        matched_gambling = [kw for kw in gambling_kws if kw in page_text_lower]
+        if len(matched_gambling) > 0:
+            score += 45
+            reasons.append(f"Chứa từ khóa cờ bạc/cá cược bất hợp pháp: {', '.join(matched_gambling)}")
 
+        task_scam_kws = ["tuyển cộng tác viên", "chốt đơn", "nhiệm vụ hoàn tiền", "hoa hồng cao", "việc nhẹ lương cao", "thanh toán đơn hàng", "tuyển đại lý", "hoa hồng đại lý"]
+        matched_tasks = [kw for kw in task_scam_kws if kw in page_text_lower]
+        if len(matched_tasks) > 0:
+            score += 40
+            reasons.append(f"Dấu hiệu Lừa đảo làm nhiệm vụ/CTV ảo: {', '.join(matched_tasks)}")
+
+        # Compile level
         risk_score = int(min(max(score, 0), 100))
         
-        if risk_score >= 70:
-            level = "dangerous"
-        elif risk_score >= 30:
-            level = "suspicious"
-        else:
+        # --- 7. Global Whitelist Override ---
+        # Áp dụng Whitelist ở bước CHÓT để xóa sạch án oan cho các trang chính thống (như ChatGPT có form đăng nhập)
+        if domain_result.get("known_safe"):
+            risk_score = 0
             level = "safe"
-            
-        if not reasons and risk_score < 30:
-            reasons.append("No suspicious patterns detected")
-            
+            reasons = ["Tên miền chính thống, được xác minh an toàn 100% (Global Whitelist)."]
+        else:
+            if risk_score >= 70:
+                level = "dangerous"
+            elif risk_score >= 30:
+                level = "suspicious"
+            else:
+                level = "safe"
+                
+            if not reasons and risk_score < 30:
+                reasons.append("No suspicious patterns detected")
         return {
             "score": risk_score,
             "level": level,

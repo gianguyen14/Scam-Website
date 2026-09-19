@@ -128,3 +128,29 @@ def test_scan_vision_api():
     assert res.status_code == 200
     data = res.json()
     assert "status" in data
+
+def test_chatgpt_whitelist():
+    payload = {
+        "schema_version": 1,
+        "url": "https://chatgpt.com/login",
+        "page": {
+            "has_password": True,
+            "external_form_action": True
+        }
+    }
+    res = client.post("/api/v1/scan", json=payload)
+    assert res.json()["risk_score"] == 0
+    assert res.json()["level"] == "safe"
+    
+def test_betting_scam():
+    payload = {
+        "schema_version": 1,
+        "url": "https://unknown-site.xyz/home",
+        "page": {
+            "title": "Nhà cái uy tín, chơi tài xỉu nổ hũ"
+        }
+    }
+    res = client.post("/api/v1/scan", json=payload)
+    data = res.json()
+    assert data["risk_score"] >= 70
+    assert data["level"] == "dangerous"

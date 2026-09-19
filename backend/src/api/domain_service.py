@@ -9,7 +9,13 @@ class DomainService:
     def __init__(self):
         # Local mock registry of malicious properties
         self.malicious_domains = {"hacker.com", "phish.xyz", "scam.io", "bad.com"}
-        self.whitelist = {"example.com", "google.com", "github.com", "vietcombank.com.vn"}
+        self.whitelist = {
+            "example.com", "google.com", "github.com", "vietcombank.com.vn",
+            "chatgpt.com", "openai.com", "facebook.com", "youtube.com", 
+            "shopee.vn", "tiki.vn", "lazada.vn", "vnexpress.net", "dantri.com.vn",
+            "tiktok.com", "messenger.com", "apple.com", "microsoft.com",
+            "vercel.app", "gianguyen14.tech"
+        }
         
         
         
