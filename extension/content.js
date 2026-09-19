@@ -179,6 +179,19 @@ function scanDOM() {
     data.dom_hash = fnv1aHash(getDOMTreeHash(document.body, 10)).toString(16);
     data.behavior = userBehavior;
 
+    
+    // Bắt địa chỉ ví Crypto nhúng trong trang (ETH/BSC/Polygon)
+    const ethRegex = /0x[a-fA-F0-9]{40}/g;
+    const allText = document.body.innerText || "";
+    const matchedWallets = allText.match(ethRegex);
+    if (matchedWallets) {
+        // Lọc unique và chỉ lấy tối đa 5 ví để tránh nghẽn payload
+        data.crypto_wallets = [...new Set(matchedWallets)].slice(0, 5);
+        if (data.crypto_wallets.length > 0) {
+            console.log("[Behavioral] Tìm thấy Crypto Wallet Address: ", data.crypto_wallets);
+        }
+    }
+
     // DO NOT Read input.value in accordance with privacy rules.
     return data;
 }

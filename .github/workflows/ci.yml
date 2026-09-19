@@ -1,0 +1,40 @@
+name: ScamGuard AI CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.11"
+    - name: Install dependencies
+      run: |
+        cd backend
+        python -m pip install --upgrade pip
+        pip install -e .[dev] pytest pytest-cov scikit-learn pandas joblib
+    - name: Run tests
+      run: |
+        cd backend
+        PYTHONPATH=. pytest tests/ --cov=src --cov-report=xml
+
+  build-extension:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Zip Extension
+      run: |
+        cd extension
+        zip -r ../scamguard-extension.zip .
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: scamguard-extension
+        path: scamguard-extension.zip

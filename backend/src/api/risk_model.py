@@ -106,7 +106,16 @@ class CoreRiskEngine:
         if behavior.get('rapidScroll'):
             score += 5
             
+
+        # --- Web3/Crypto Wallet Scanning ---
+        crypto_wallets = page_features.get('crypto_wallets', [])
+        if len(crypto_wallets) > 0:
+            score += 15
+            reasons.append(f"Contains {len(crypto_wallets)} embedded web3 smart contracts/wallets (High risk element)")
+            # In production, cross-reference these addresses with ScamSniffer contract database
+        
         # --- Dynamic Risk Aggregation ---
+
         # 1. Amplification: If domain is extremely new/suspicious AND content NLP triggers urgency, multiply NLP score
         if domain_score > 20 and content_score > 10:
             amplified_penalty = content_score * 0.5 
