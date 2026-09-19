@@ -51,19 +51,24 @@ function getVisibleText() {
 }
 
 // Lấy chuỗi cấu trúc thẻ thuần túy để so sánh Fuzzy Similarity (Bền vững hơn Exact Hash)
+
 function getDOMTreeSequence(node, maxTags, result=[]) {
     if (result.length >= maxTags || !node) return result;
     for (let i = 0; i < node.childNodes.length; i++) {
         let child = node.childNodes[i];
         if (child.nodeType === 1) { 
-            if (!['SCRIPT', 'STYLE', 'META', 'LINK', 'NOSCRIPT', 'BR', 'HR', 'SVG', 'PATH'].includes(child.nodeName)) {
+            // HIỆU SUẤT CAO: Chỉ tập trung vào các thẻ mang tính định dạng cốt lõi hoặc tương tác
+            // Loại bỏ hoàn toàn các thẻ rác (DIV, SPAN, P, A) thường xuyên bị thay đổi để vượt mặt
+            if (['FORM', 'INPUT', 'BUTTON', 'SELECT', 'TEXTAREA', 'IFRAME', 'IMG', 'HEADER', 'FOOTER', 'NAV', 'TABLE'].includes(child.nodeName)) {
                 result.push(child.nodeName);
-                getDOMTreeSequence(child, maxTags, result);
             }
+            // Vẫn tiếp tục đi sâu vào trong
+            getDOMTreeSequence(child, maxTags, result);
         }
     }
     return result;
 }
+
 
 // --- MÔ-ĐUN ADVANCED VISION (DOM Structural Hashing) ---
 // Phishing site thường copy nguyên cấu trúc thẻ HTML của site gốc.

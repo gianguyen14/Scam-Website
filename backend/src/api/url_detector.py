@@ -43,7 +43,14 @@ def extract_url_features(url: str) -> dict:
         'has_punycode': 1 if 'xn--' in hostname else 0,
         'has_https': 1 if parsed.scheme == 'https' else 0,
         'has_explicit_port': 1 if parsed.port else 0,
-        'has_shortener': 1 if hostname in {'bit.ly', 'goo.gl', 't.co', 'tinyurl.com'} else 0,
+        
+        'has_shortener': 1 if hostname in {'bit.ly', 'goo.gl', 't.co', 'tinyurl.com', 'is.gd', 'cutt.ly', 's.id'} else 0,
+        'num_hyphens': url.count('-'),
+        'num_at': url.count('@'),
+        'num_queries': len(query.split('&')) if query else 0,
+        'path_to_domain_ratio': len(path) / len(hostname) if len(hostname) > 0 else 0,
+        'is_suspicious_tld': 1 if any(hostname.endswith(tld) for tld in SUSPICIOUS_TLDS) else 0
+
     }
     
     features['digit_ratio'] = features['num_digits'] / len(url) if len(url) > 0 else 0

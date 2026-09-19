@@ -12,11 +12,11 @@ from api.url_detector import extract_url_features
 
 print("--- TRAINING URL AI MODEL WITH CLD DATASET ---")
 try:
-    cld_df = pd.read_csv('/tmp/phishing-ml/Generate Dataset/dataset.csv', on_bad_lines='skip', nrows=50000)
+    cld_df = pd.read_csv('/tmp/phishing-ml/Generate Dataset/dataset.csv', on_bad_lines='skip', nrows=150000)
     
     # Balance dataset
-    df_safe = cld_df[cld_df['label'] == 0].sample(n=3000, random_state=42)
-    df_phish = cld_df[cld_df['label'] == 1].sample(n=3000, random_state=42)
+    df_safe = cld_df[cld_df['label'] == 0].sample(n=20000, random_state=42)
+    df_phish = cld_df[cld_df['label'] == 1].sample(n=20000, random_state=42)
     df_balanced = pd.concat([df_safe, df_phish])
     
     urls = list(zip(df_balanced['url'], df_balanced['label']))
@@ -29,7 +29,7 @@ except Exception as e:
 
 # Extract features using our own static high-speed engine
 df_url = pd.DataFrame([extract_url_features(str(u[0])) for u in urls])
-url_clf = RandomForestClassifier(n_estimators=100, random_state=42, max_depth=10)
+url_clf = RandomForestClassifier(n_estimators=150, random_state=42)
 url_clf.fit(df_url, [u[1] for u in urls])
 joblib.dump({"model": url_clf, "features": list(df_url.columns)}, "models/url_model.joblib")
 print("Saved url_model.joblib (ChongLuaDao Enriched)")

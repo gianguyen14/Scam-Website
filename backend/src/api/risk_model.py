@@ -151,8 +151,20 @@ class CoreRiskEngine:
             score += 40
             reasons.append("Tên miền chứa từ khóa cờ bạc kết hợp với TLD rủi ro cao.")
             
-        # Compile level
+        
+        # --- 9. TỐI ĐA HÓA ĐỘ CHÍNH XÁC (Accuracy Maximizer Combo) ---
+        # Bắt triệt để: Tên miền lạ (domain_score > 0) + Yêu cầu thông tin nhạy cảm + Có gửi dữ liệu ra ngoài
+        if not domain_result.get("known_safe"):
+            if page_features.get('has_password') and page_features.get('external_form_action'):
+                score += 35
+                reasons.append("Hành vi nguy hiểm: Thu thập mật khẩu và gửi sang máy chủ bên ngoài (Cross-Origin Action).")
+                
+            # Đòi hỏi Credit Card trên web không uy tín -> Auto Dangerous
+            if page_features.get('has_credit_card') and domain_score > 15:
+                score += 50
+                reasons.append("Gian lận tín dụng: Yêu cầu thẻ tín dụng trên tên miền không đủ độ tin cậy.")
 
+        # Compile level
         risk_score = int(min(max(score, 0), 100))
         
         # --- 7. Global Whitelist Override ---
