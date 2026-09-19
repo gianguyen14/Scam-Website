@@ -1,4 +1,8 @@
+import os
+import sqlite3
+from src.schemas.models import ScamReport
 from fastapi import APIRouter
+from src.schemas.models import ScanRequest, ScanResponse, ModulesResult, ScamReport
 
 from src.api.risk_model import CoreRiskEngine
 from src.api.url_detector import extract_url_features
@@ -32,3 +36,22 @@ def scan_url(request: ScanRequest):
             vision=result["modules"]["vision"]
         )
     )
+
+
+@router.post("/api/v1/report")
+def report_scam(report: ScamReport):
+    # Tích hợp Community Database Pattern (Lấy cảm hứng từ Dollar-Scholars/scams-database)
+    db_path = os.path.join(os.path.dirname(__file__), "../../data/community_scams.sqlite3")
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS scams
+                      (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT, amount REAL, currency TEXT, 
+                      platform TEXT, desc TEXT, scammer TEXT, phishing BOOLEAN)''')
+    
+    cursor.execute('''INSERT INTO scams (url, amount, currency, platform, desc, scammer, phishing) 
+                      VALUES (?, ?, ?, ?, ?, ?, ?)''', 
+                   (report.url_or_contact, report.amount_lost, report.currency, report.platform, 
+                    report.description, report.scammer_name, report.phishing))
+    conn.commit()
+    conn.close()
+    return {"status": "success", "message": "Report logged into community database."}

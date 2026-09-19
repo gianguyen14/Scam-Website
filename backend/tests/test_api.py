@@ -75,3 +75,12 @@ def test_scan_api_w3_scamsniffer():
     assert data["level"] == "dangerous"
     assert data["risk_score"] == 100
     assert any("ScamSniffer" in r for r in data["reasons"])
+
+def test_report_scam():
+    payload = {
+        "url_or_contact": "scamers_email@test.com",
+        "description": "Inspired by Dollar-Scholars"
+    }
+    res = client.post("/api/v1/report", json=payload)
+    assert res.status_code == 200
+    assert res.json()["status"] == "success"
