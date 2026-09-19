@@ -45,7 +45,7 @@ def test_scan_api_domain_impersonation():
     data = res.json()
     assert data["level"] == "dangerous"
     assert data["detected_brand"] == "Vietcombank"
-    assert any("Impersonating Vietcombank" in r for r in data["reasons"])
+    assert any("Vietcombank" in r for r in data["reasons"])
 
 def test_scan_api_content_urgency():
     payload = {

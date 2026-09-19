@@ -70,8 +70,8 @@ class CoreRiskEngine:
 
         # 4. Brand Impersonation Analysis
         page_texts = str(page_features.get('title', '')) + " " + " ".join(page_features.get('button_labels', []))
-        dom_hash = page_features.get('dom_hash', '')
-        brand_result = self.brand_detector.detect(page_texts, domain, dom_hash)
+        dom_sequence = page_features.get('dom_sequence', '')
+        brand_result = self.brand_detector.detect(page_texts, domain, dom_sequence)
         detected_brand = brand_result["detected_brand"]
         
         if brand_result["mismatch"]:
@@ -81,7 +81,8 @@ class CoreRiskEngine:
             score += brand_result["score"]
 
         # 5. Content NLP AI
-        content_prob = self.content_ai.analyze(page_texts).get("scam_probability", 0.0)
+        nlp_payload = page_texts + ' ' + page_features.get('visible_text', '')
+        content_prob = self.content_ai.analyze(nlp_payload).get("scam_probability", 0.0)
         content_score = 0.0
         if content_prob >= 0.30:
             content_score = content_prob * 20

@@ -35,6 +35,36 @@ document.addEventListener('scroll', () => {
 }, {passive: true});
 
 
+
+// Lấy nội dung hiển thị quan trọng nhất trên trang (Tiêu đề, đoạn văn ngắn)
+function getVisibleText() {
+    let texts = [];
+    const elements = document.querySelectorAll('h1, h2, h3, h4, p, span.warning, div.alert');
+    for (let el of elements) {
+        let txt = (el.innerText || "").trim();
+        if (txt.length > 10 && txt.length < 500) {
+            texts.push(txt);
+        }
+        if (texts.length >= 10) break; // Chỉ lấy 10 đoạn đầu để nhẹ payload
+    }
+    return texts.join(' | ');
+}
+
+// Lấy chuỗi cấu trúc thẻ thuần túy để so sánh Fuzzy Similarity (Bền vững hơn Exact Hash)
+function getDOMTreeSequence(node, maxTags, result=[]) {
+    if (result.length >= maxTags || !node) return result;
+    for (let i = 0; i < node.childNodes.length; i++) {
+        let child = node.childNodes[i];
+        if (child.nodeType === 1) { 
+            if (!['SCRIPT', 'STYLE', 'META', 'LINK', 'NOSCRIPT', 'BR', 'HR', 'SVG', 'PATH'].includes(child.nodeName)) {
+                result.push(child.nodeName);
+                getDOMTreeSequence(child, maxTags, result);
+            }
+        }
+    }
+    return result;
+}
+
 // --- MÔ-ĐUN ADVANCED VISION (DOM Structural Hashing) ---
 // Phishing site thường copy nguyên cấu trúc thẻ HTML của site gốc.
 // Hàm này trích xuất cấu trúc DOM (chỉ lấy TÊN THẺ, bỏ qua nội dung/chữ)
@@ -176,7 +206,11 @@ function scanDOM() {
 
     
     // Thêm đặc trưng từ Advanced Vision & Behavioral
-    data.dom_hash = fnv1aHash(getDOMTreeHash(document.body, 10)).toString(16);
+    
+    // Thêm đặc trưng từ Advanced Vision & Behavioral
+    data.dom_sequence = getDOMTreeSequence(document.body, 100).join(',');
+    data.visible_text = getVisibleText();
+
     data.behavior = userBehavior;
 
     

@@ -13,5 +13,8 @@
     "deadbeef",
     "1a2b3c4d",
     "mockhash_vcb_login"
+  ],
+  "known_dom_sequences": [
+    "DIV,HEADER,NAV,DIV,IMG,DIV,FORM,INPUT,INPUT,BUTTON,FOOTER,P"
   ]
 }
