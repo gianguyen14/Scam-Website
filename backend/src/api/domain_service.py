@@ -9,8 +9,12 @@ class DomainService:
         self.malicious_domains = {"hacker.com", "phish.xyz", "scam.io", "bad.com"}
         self.whitelist = {"example.com", "google.com", "github.com", "vietcombank.com.vn"}
         
+        
         # Load ScamSniffer database
         self._load_scamsniffer()
+        
+        # Load Global Phishing Database
+        self._load_phishing_db()
         
     def _load_scamsniffer(self):
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
@@ -19,10 +23,23 @@ class DomainService:
             if os.path.exists(db_path):
                 with open(db_path, "r", encoding="utf-8") as f:
                     domains = json.load(f)
-                    # Use a set for O(1) lookup
                     self.malicious_domains.update([d.lower() for d in domains])
         except Exception as e:
             print("Failed to load scamsniffer domains:", e)
+
+    def _load_phishing_db(self):
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        db_path = os.path.join(base_dir, "data", "phishing_domains.txt")
+        try:
+            if os.path.exists(db_path):
+                with open(db_path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith('#'):
+                            self.malicious_domains.add(line.lower())
+        except Exception as e:
+            print("Failed to load phishing db:", e)
+
 
     def extract_domain(self, url: str) -> str:
         try:
@@ -51,7 +68,7 @@ class DomainService:
                 break
                 
         if is_malicious:
-            return {"known_malicious": True, "score": 100.0, "reasons": ["Domain is listed in Web3/Crypto Scam Blocklist (ScamSniffer)"]}
+            return {"known_malicious": True, "score": 100.0, "reasons": ["Domain is listed in Global Scam/Phishing Database (ScamSniffer / Phishing.Database)"]}
             
         if domain in self.whitelist:
             return {"known_safe": True, "score": 0.0, "reasons": []}

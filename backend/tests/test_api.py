@@ -84,3 +84,15 @@ def test_report_scam():
     res = client.post("/api/v1/report", json=payload)
     assert res.status_code == 200
     assert res.json()["status"] == "success"
+
+def test_scan_api_phishing_db():
+    payload = {
+        "schema_version": 1,
+        "url": "https://0000000000000000000000000.findyourjacket.com/login",
+        "page": {}
+    }
+    res = client.post("/api/v1/scan", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["level"] == "dangerous"
+    assert data["risk_score"] == 100
