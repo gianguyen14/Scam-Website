@@ -139,13 +139,23 @@ class DomainService:
         if is_malicious:
             return {"known_malicious": True, "score": 100.0, "reasons": ["Domain is listed in Global Scam/Phishing Database (ScamSniffer / Phishing.Database)"]}
             
+        
+        # Government & Education Safe TLDs Override (Vietnam specific)
+        if domain.endswith(".gov.vn") or domain.endswith(".edu.vn"):
+            return {"known_safe": True, "score": 0.0, "reasons": []}
+            
         if domain in self.whitelist:
             return {"known_safe": True, "score": 0.0, "reasons": []}
             
         # 2. Mocked heuristics
-        if domain.endswith(".xyz") or domain.endswith(".top"):
-            score += 25
-            reasons.append("High-risk TLD")
+        suspicious_tlds = [".xyz", ".top", ".icu", ".click", ".fun", ".cyou", ".space", ".cc", ".vip", ".live"]
+        matched_tld = [tld for tld in suspicious_tlds if domain.endswith(tld)]
+        if matched_tld:
+            score += 35
+            reasons.append(f"High-risk TLD used frequently by scammers ({matched_tld[0]})")
+            
+        # Unusually high number of digits or hyphens (typical in autogen domains)
+
             
         # Unusually high number of digits
         if sum(1 for c in domain if c.isdigit()) > 5:

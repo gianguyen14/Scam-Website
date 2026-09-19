@@ -56,7 +56,7 @@ class BrandDetector:
                         return {
                             "detected_brand": brand["brand"],
                             "mismatch": True,
-                            "score": 40.0,
+                            "score": 75.0, # Nâng mức phạt cho giả mạo thương hiệu lên tử hình
                             "reason": f"Dùng nội dung/tên thương hiệu {brand['brand']} trên tên miền lạ."
                         }
                 else:

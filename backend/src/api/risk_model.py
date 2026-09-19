@@ -142,7 +142,17 @@ class CoreRiskEngine:
             score += 40
             reasons.append(f"Dấu hiệu Lừa đảo làm nhiệm vụ/CTV ảo: {', '.join(matched_tasks)}")
 
+        
+        # --- 8. URL Threat Keywords Bumping ---
+        url_lower = url.lower()
+        betting_url_kws = ["bet", "win", "slot", "casino", "go88", "hitclub", "sunwin", "88"]
+        if any(kw in url_lower for kw in betting_url_kws) and domain_score > 20: 
+            # If it has a bad TLD AND betting keywords in URL, auto dangerous
+            score += 40
+            reasons.append("Tên miền chứa từ khóa cờ bạc kết hợp với TLD rủi ro cao.")
+            
         # Compile level
+
         risk_score = int(min(max(score, 0), 100))
         
         # --- 7. Global Whitelist Override ---
