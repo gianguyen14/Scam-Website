@@ -1,6 +1,5 @@
 import os
 import joblib
-import pandas as pd
 from typing import Dict, Any
 from src.api.domain_service import DomainService
 from src.api.brand_detector import BrandDetector
@@ -28,18 +27,24 @@ class CoreRiskEngine:
         score = 0.0
         reasons = []
         
+        
         # 1. URL Analysis (AI Powered)
         url_score_val = 0.0
         if self.url_ai_loaded:
-            df = pd.DataFrame([url_features])
-            # align columns
-            df = df.reindex(columns=self.url_features, fill_value=0)
-            url_prob = self.url_model.predict_proba(df)[0][1]
-            if url_prob > 0.5:
-                # Add up to 35 points based on AI certainty
-                url_score_val = url_prob * 35
-                reasons.append(f"AI URL Pattern matches phishing ({int(url_prob*100)}% certainty)")
+            # Pure python feature alignment instead of pandas
+            row = []
+            for col in self.url_features:
+                row.append(url_features.get(col, 0))
+            
+            try:
+                url_prob = self.url_model.predict_proba([row])[0][1]
+                if url_prob > 0.5:
+                    url_score_val = url_prob * 35
+                    reasons.append(f"AI URL Pattern matches phishing ({int(url_prob*100)}% certainty)")
+            except Exception as e:
+                print("URL Model Error:", e)
             score += url_score_val
+
         
         # 2. Domain Analysis
         domain_svc = DomainService()

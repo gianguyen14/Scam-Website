@@ -1,5 +1,6 @@
 import os
 import json
+import gzip
 import urllib.parse
 import socket
 from typing import Dict, Any
@@ -22,13 +23,13 @@ class DomainService:
         self.malicious_ips = set()
         self._load_malicious_ips()
         
+    
     def _load_malicious_ips(self):
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        # Load IPSUM
-        ipsum_path = os.path.join(base_dir, "data", "ipsum.txt")
+        ipsum_path = os.path.join(base_dir, "data", "ipsum.txt.gz")
         try:
             if os.path.exists(ipsum_path):
-                with open(ipsum_path, "r", encoding="utf-8") as f:
+                with gzip.open(ipsum_path, "rt", encoding="utf-8") as f:
                     for line in f:
                         line = line.strip()
                         if line and not line.startswith('#'):
@@ -36,18 +37,20 @@ class DomainService:
                             if len(parts) >= 2:
                                 ip = parts[0]
                                 score = int(parts[1])
-                                if score >= 2: # Keep IPs found on at least 2 blocklists
+                                if score >= 2:
                                     self.malicious_ips.add(ip)
         except Exception as e:
             print("Failed to load IPs:", e)
 
+
         
+    
     def _load_scamsniffer(self):
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        db_path = os.path.join(base_dir, "data", "scamsniffer_domains.json")
+        db_path = os.path.join(base_dir, "data", "scamsniffer_domains.json.gz")
         try:
             if os.path.exists(db_path):
-                with open(db_path, "r", encoding="utf-8") as f:
+                with gzip.open(db_path, "rt", encoding="utf-8") as f:
                     domains = json.load(f)
                     self.malicious_domains.update([d.lower() for d in domains])
         except Exception as e:
@@ -55,16 +58,17 @@ class DomainService:
 
     def _load_phishing_db(self):
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        db_path = os.path.join(base_dir, "data", "phishing_domains.txt")
+        db_path = os.path.join(base_dir, "data", "phishing_domains.txt.gz")
         try:
             if os.path.exists(db_path):
-                with open(db_path, "r", encoding="utf-8") as f:
+                with gzip.open(db_path, "rt", encoding="utf-8") as f:
                     for line in f:
                         line = line.strip()
                         if line and not line.startswith('#'):
                             self.malicious_domains.add(line.lower())
         except Exception as e:
             print("Failed to load phishing db:", e)
+
 
 
     def extract_domain(self, url: str) -> str:

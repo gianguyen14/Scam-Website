@@ -9,7 +9,7 @@ import contextlib
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
     # Khởi động lịch trình tự động update dữ liệu nếu KHÔNG chạy trên Vercel
-    if not os.environ.get("VERCEL_BUILD"):
+    if not os.environ.get("VERCEL_BUILD") and not os.environ.get("VERCEL"):
         try:
             from apscheduler.schedulers.background import BackgroundScheduler
             scheduler = BackgroundScheduler()
