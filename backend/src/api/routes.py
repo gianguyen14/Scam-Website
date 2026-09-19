@@ -1,7 +1,12 @@
 import os
 import sqlite3
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
+
+@router.get("/", include_in_schema=False)
+def read_root():
+    return RedirectResponse(url='/dashboard')
+
 from fastapi.templating import Jinja2Templates
 from src.schemas.models import ScanRequest, ScanResponse, ModulesResult, ScamReport, VisionRequest
 from src.api.url_detector import extract_url_features
