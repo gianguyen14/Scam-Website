@@ -62,3 +62,16 @@ def test_scan_api_content_urgency():
     # High urgency keyword + password request on unknown domain -> likely dangerous or suspicious
     assert data["risk_score"] >= 25
     assert any("AI Content NLP" in r or "High urgency" in r for r in data["reasons"])
+
+def test_scan_api_w3_scamsniffer():
+    payload = {
+        "schema_version": 1,
+        "url": "https://walletconnectportal.onrender.com",
+        "page": {}
+    }
+    res = client.post("/api/v1/scan", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["level"] == "dangerous"
+    assert data["risk_score"] == 100
+    assert any("ScamSniffer" in r for r in data["reasons"])

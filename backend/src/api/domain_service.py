@@ -1,6 +1,7 @@
+import os
+import json
 import urllib.parse
-from typing import Any
-
+from typing import Dict, Any
 
 class DomainService:
     def __init__(self):
@@ -8,6 +9,21 @@ class DomainService:
         self.malicious_domains = {"hacker.com", "phish.xyz", "scam.io", "bad.com"}
         self.whitelist = {"example.com", "google.com", "github.com", "vietcombank.com.vn"}
         
+        # Load ScamSniffer database
+        self._load_scamsniffer()
+        
+    def _load_scamsniffer(self):
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        db_path = os.path.join(base_dir, "data", "scamsniffer_domains.json")
+        try:
+            if os.path.exists(db_path):
+                with open(db_path, "r", encoding="utf-8") as f:
+                    domains = json.load(f)
+                    # Use a set for O(1) lookup
+                    self.malicious_domains.update([d.lower() for d in domains])
+        except Exception as e:
+            print("Failed to load scamsniffer domains:", e)
+
     def extract_domain(self, url: str) -> str:
         try:
             parsed = urllib.parse.urlparse(url if "://" in url else "http://" + url)
@@ -15,7 +31,7 @@ class DomainService:
         except Exception:
             return ""
 
-    def evaluate(self, domain: str) -> dict[str, Any]:
+    def evaluate(self, domain: str) -> Dict[str, Any]:
         if not domain:
             return {"known_malicious": False, "score": 0.0}
             
@@ -23,9 +39,19 @@ class DomainService:
         score = 0.0
         reasons = []
         
-        # 1. Reputation
-        if domain in self.malicious_domains:
-            return {"known_malicious": True, "score": 100.0, "reasons": ["Domain is blocklisted"]}
+        # 1. Reputation (Check exact match and wildcard subdomains)
+        is_malicious = False
+        parts = domain.split('.')
+        
+        # Check domain and all root variants (e.g. sub.scam.com -> scam.com)
+        for i in range(len(parts)):
+            sub_domain = ".".join(parts[i:])
+            if sub_domain in self.malicious_domains:
+                is_malicious = True
+                break
+                
+        if is_malicious:
+            return {"known_malicious": True, "score": 100.0, "reasons": ["Domain is listed in Web3/Crypto Scam Blocklist (ScamSniffer)"]}
             
         if domain in self.whitelist:
             return {"known_safe": True, "score": 0.0, "reasons": []}
@@ -35,6 +61,7 @@ class DomainService:
             score += 25
             reasons.append("High-risk TLD")
             
+        # Unusually high number of digits
         if sum(1 for c in domain if c.isdigit()) > 5:
             score += 15
             reasons.append("Unusually high number of digits in domain")
