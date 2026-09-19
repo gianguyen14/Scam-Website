@@ -9,7 +9,10 @@
     "scripting"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "scripts": [
+      "background.js"
+    ]
   },
   "action": {
     "default_popup": "popup.html",
@@ -31,5 +34,11 @@
       ],
       "run_at": "document_end"
     }
-  ]
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "scamguard@gianguyen14.tech",
+      "strict_min_version": "109.0"
+    }
+  }
 }
