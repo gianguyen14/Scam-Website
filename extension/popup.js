@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             console.log("Could not ping content script, maybe not injected yet or restricted page.", e);
         }
 
-        const res = await fetch("http://127.0.0.1:8000/api/v1/scan", {
+        const res = await fetch("https://scam-website-u49m.vercel.app/api/v1/scan", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
