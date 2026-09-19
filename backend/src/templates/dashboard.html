@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ScamGuard AI - Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans leading-normal tracking-normal">
+    <nav class="bg-gray-800 p-4 shadow-lg">
+        <div class="container mx-auto flex justify-between">
+            <a href="#" class="text-white font-bold text-xl uppercase">🛡️ ScamGuard AI Telemetry</a>
+        </div>
+    </nav>
+    <div class="container mx-auto mt-8 p-4">
+        <!-- Stats Row -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6 border-t-4 border-blue-500">
+                <h3 class="text-gray-500 text-sm uppercase">Total Domains Scanned</h3>
+                <p class="text-3xl font-bold text-gray-800">{{ total_scans }}</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6 border-t-4 border-red-500">
+                <h3 class="text-gray-500 text-sm uppercase">Phishing Attempt Blocks</h3>
+                <p class="text-3xl font-bold text-red-600">{{ total_blocked }}</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6 border-t-4 border-yellow-500">
+                <h3 class="text-gray-500 text-sm uppercase">Community Reports</h3>
+                <p class="text-3xl font-bold text-yellow-600">{{ total_reports }}</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Recent Scans Table -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="font-bold text-xl mb-4 border-b pb-2">📡 Live AI Detections</h3>
+                <table class="min-w-full text-left">
+                    <thead>
+                        <tr class="text-gray-600 border-b">
+                            <th class="py-2">Domain</th>
+                            <th class="py-2">Risk Score</th>
+                            <th class="py-2">Time</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm">
+                        {% for row in recent_scans %}
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="py-2 truncate max-w-xs">{{ row[0] }}</td>
+                            <td class="py-2 font-bold {% if row[1] >= 70 %}text-red-500{% elif row[1] >= 30 %}text-yellow-500{% else %}text-green-500{% endif %}">
+                                {{ row[1] }}/100
+                            </td>
+                            <td class="py-2 text-gray-500">{{ row[2] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Community Reports Table -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="font-bold text-xl mb-4 border-b pb-2">🚨 Community Reports</h3>
+                <table class="min-w-full text-left">
+                    <thead>
+                        <tr class="text-gray-600 border-b">
+                            <th class="py-2">Reported Source</th>
+                            <th class="py-2">Description</th>
+                            <th class="py-2">Time</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm">
+                        {% for row in recent_reports %}
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="py-2 truncate max-w-xs text-red-600 font-medium">{{ row[0] }}</td>
+                            <td class="py-2 truncate max-w-[200px]">{{ row[1] }}</td>
+                            <td class="py-2 text-gray-500">{{ row[2] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

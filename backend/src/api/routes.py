@@ -1,16 +1,33 @@
 import os
 import sqlite3
-from src.schemas.models import ScamReport
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from src.schemas.models import ScanRequest, ScanResponse, ModulesResult, ScamReport, VisionRequest
-from src.api.vision_ai import AdvancedVisionAI
-
-from src.api.risk_model import CoreRiskEngine
 from src.api.url_detector import extract_url_features
-from src.schemas.models import ModulesResult, ScanRequest, ScanResponse
+from src.api.risk_model import CoreRiskEngine
+from src.api.vision_ai import AdvancedVisionAI
 
 router = APIRouter()
 vision_agent = AdvancedVisionAI()
+
+base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+templates = Jinja2Templates(directory=os.path.join(base_dir, "src", "templates"))
+db_path = os.path.join(base_dir, "data", "community_scams.sqlite3")
+
+def init_db():
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS scams
+                      (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT, amount REAL, currency TEXT, 
+                      platform TEXT, desc TEXT, scammer TEXT, phishing BOOLEAN, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)''')
+    cursor.execute('''CREATE TABLE IF NOT EXISTS telemetry
+                      (id INTEGER PRIMARY KEY AUTOINCREMENT, domain TEXT, score INTEGER, level TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)''')
+    conn.commit()
+    conn.close()
+
+init_db()
+
 engine = CoreRiskEngine()
 
 @router.get("/health")
@@ -24,7 +41,21 @@ def scan_url(request: ScanRequest):
     
     result = engine.evaluate(request.url, url_features, page_features)
     
+    
+    # Ghi log Telemetry nhanh
+    import urllib.parse
+    try:
+        req_domain = urllib.parse.urlparse(request.url).hostname or "unknown"
+        conn = sqlite3.connect(db_path)
+        c = conn.cursor()
+        c.execute('INSERT INTO telemetry (domain, score, level) VALUES (?, ?, ?)', (req_domain, risk_score, level))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
     return ScanResponse(
+
         schema_version=1,
         risk_score=result["score"],
         level=result["level"],
@@ -80,3 +111,33 @@ def scan_vision(req: VisionRequest):
         "level": level,
         "reason": result["reason"]
     }
+
+
+@router.get("/dashboard", response_class=HTMLResponse)
+def view_dashboard(request: Request):
+    conn = sqlite3.connect(db_path)
+    c = conn.cursor()
+    c.execute("SELECT COUNT(*) FROM telemetry")
+    total_scans = c.fetchone()[0]
+    
+    c.execute("SELECT COUNT(*) FROM telemetry WHERE level='dangerous'")
+    total_blocked = c.fetchone()[0]
+    
+    c.execute("SELECT COUNT(*) FROM scams")
+    total_reports = c.fetchone()[0]
+    
+    c.execute("SELECT domain, score, timestamp FROM telemetry ORDER BY timestamp DESC LIMIT 10")
+    recent_scans = c.fetchall()
+    
+    c.execute("SELECT url, desc, timestamp FROM scams ORDER BY timestamp DESC LIMIT 10")
+    recent_reports = c.fetchall()
+    conn.close()
+    
+    return templates.TemplateResponse("dashboard.html", {
+        "request": request,
+        "total_scans": total_scans,
+        "total_blocked": total_blocked,
+        "total_reports": total_reports,
+        "recent_scans": recent_scans,
+        "recent_reports": recent_reports
+    })
