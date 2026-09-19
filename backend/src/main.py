@@ -1,7 +1,5 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from apscheduler.schedulers.background import BackgroundScheduler
-from src.api.feed_updater import update_threat_intel_feeds
 from src.api.routes import router
 import contextlib
 
@@ -11,10 +9,8 @@ async def lifespan(app: FastAPI):
     # Khởi động lịch trình tự động update dữ liệu nếu KHÔNG chạy trên Vercel
     if not os.environ.get("VERCEL_BUILD") and not os.environ.get("VERCEL"):
         try:
-            from apscheduler.schedulers.background import BackgroundScheduler
-            scheduler = BackgroundScheduler()
-            from src.api.feed_updater import update_threat_intel_feeds
-            scheduler.add_job(update_threat_intel_feeds, 'date')
+                        scheduler = BackgroundScheduler()
+                        scheduler.add_job(update_threat_intel_feeds, 'date')
             scheduler.add_job(update_threat_intel_feeds, 'interval', hours=12)
             scheduler.start()
         except ImportError:
