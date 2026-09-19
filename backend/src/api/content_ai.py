@@ -3,7 +3,7 @@ import joblib
 from typing import Dict, Any
 
 class ContentAI:
-    def __init__(self, model_path="models/content_nlp_model.joblib"):
+    def __init__(self, model_path="models/content_nlp_model_v2.joblib"):
         self.is_loaded = False
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
         full_path = os.path.join(base_dir, model_path)
