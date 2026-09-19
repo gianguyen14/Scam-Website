@@ -96,3 +96,22 @@ def test_scan_api_phishing_db():
     data = res.json()
     assert data["level"] == "dangerous"
     assert data["risk_score"] == 100
+
+from unittest.mock import patch
+
+@patch('socket.gethostbyname')
+def test_scan_api_malicious_ip(mock_dns):
+    # Mock DNS resolution to return a known bad IP from IPSUM (e.g. 45.43.60.98)
+    mock_dns.return_value = "45.43.60.98"
+    
+    payload = {
+        "schema_version": 1,
+        "url": "http://some-random-domain.com/login",
+        "page": {}
+    }
+    res = client.post("/api/v1/scan", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["level"] == "dangerous"
+    assert data["risk_score"] == 100
+    assert any("Malicious Infrastructure" in r for r in data["reasons"])

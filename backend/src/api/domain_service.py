@@ -1,6 +1,7 @@
 import os
 import json
 import urllib.parse
+import socket
 from typing import Dict, Any
 
 class DomainService:
@@ -10,11 +11,36 @@ class DomainService:
         self.whitelist = {"example.com", "google.com", "github.com", "vietcombank.com.vn"}
         
         
+        
         # Load ScamSniffer database
         self._load_scamsniffer()
         
         # Load Global Phishing Database
         self._load_phishing_db()
+        
+        # Load Malicious IP Infrastructure
+        self.malicious_ips = set()
+        self._load_malicious_ips()
+        
+    def _load_malicious_ips(self):
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        # Load IPSUM
+        ipsum_path = os.path.join(base_dir, "data", "ipsum.txt")
+        try:
+            if os.path.exists(ipsum_path):
+                with open(ipsum_path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith('#'):
+                            parts = line.split()
+                            if len(parts) >= 2:
+                                ip = parts[0]
+                                score = int(parts[1])
+                                if score >= 2: # Keep IPs found on at least 2 blocklists
+                                    self.malicious_ips.add(ip)
+        except Exception as e:
+            print("Failed to load IPs:", e)
+
         
     def _load_scamsniffer(self):
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
@@ -56,6 +82,17 @@ class DomainService:
         score = 0.0
         reasons = []
         
+        # 0. Infrastructure Check (DNS Resolve -> Malicious IP Blocklist)
+        resolved_ip = None
+        try:
+            # Short timeout so we don't hang the API
+            socket.setdefaulttimeout(1.5)
+            resolved_ip = socket.gethostbyname(domain)
+            if resolved_ip in self.malicious_ips:
+                return {"known_malicious": True, "score": 100.0, "reasons": [f"Domain hosted on known Malicious Infrastructure / Botnet IP (IPSUM Flagged: {resolved_ip})"]}
+        except Exception:
+            pass
+            
         # 1. Reputation (Check exact match and wildcard subdomains)
         is_malicious = False
         parts = domain.split('.')
