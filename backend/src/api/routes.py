@@ -11,9 +11,16 @@ from src.api.vision_ai import AdvancedVisionAI
 router = APIRouter()
 vision_agent = AdvancedVisionAI()
 
+
 base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 templates = Jinja2Templates(directory=os.path.join(base_dir, "src", "templates"))
-db_path = os.path.join(base_dir, "data", "community_scams.sqlite3")
+
+# Dynamic SQLite Path: Vercel serverless only allows writing to /tmp/
+if os.environ.get("VERCEL") or os.environ.get("VERCEL_BUILD"):
+    db_path = "/tmp/community_scams.sqlite3"
+else:
+    db_path = os.path.join(base_dir, "data", "community_scams.sqlite3")
+
 
 def init_db():
     conn = sqlite3.connect(db_path)
@@ -141,3 +148,10 @@ def view_dashboard(request: Request):
         "recent_scans": recent_scans,
         "recent_reports": recent_reports
     })
+
+
+@router.get("/api/v1/cron/update-feeds")
+def vercel_cron_update():
+    from src.api.feed_updater import update_threat_intel_feeds
+    update_threat_intel_feeds()
+    return {"status": "success", "message": "Updated intelligence feeds globally."}

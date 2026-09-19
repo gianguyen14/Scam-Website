@@ -85,7 +85,12 @@ class DomainService:
         
         # Live Feed Check (Zero-Day from OpenPhish / URLhaus)
         try:
-            db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "community_scams.sqlite3")
+            
+            if os.environ.get("VERCEL") or os.environ.get("VERCEL_BUILD"):
+                db_path = "/tmp/community_scams.sqlite3"
+            else:
+                db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "community_scams.sqlite3")
+
             if os.path.exists(db_path):
                 import sqlite3
                 conn = sqlite3.connect(db_path)

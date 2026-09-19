@@ -6,8 +6,13 @@ from datetime import datetime
 
 def update_threat_intel_feeds():
     print(f"[{datetime.now()}] Starting Zero-day Threat Intel Feed Update...")
+    
     base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-    db_path = os.path.join(base_dir, "data", "community_scams.sqlite3")
+    if os.environ.get("VERCEL") or os.environ.get("VERCEL_BUILD"):
+        db_path = "/tmp/community_scams.sqlite3"
+    else:
+        db_path = os.path.join(base_dir, "data", "community_scams.sqlite3")
+
     
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
