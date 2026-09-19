@@ -84,7 +84,30 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     }
                 }
                 
-                                if (responseData && responseData.level === "dangerous") {
+                                
+                // Nếu trang có rủi ro tiềm ẩn (nhưng chưa đủ điểm đấm thành dangerous),
+                // hoặc trang nhạy cảm chứa password, Kích hoạt Deep Vision AI
+                if (responseData && responseData.risk_score >= 20 && responseData.risk_score < 70) {
+                    try {
+                        let dataUrl = await chrome.tabs.captureVisibleTab(sender.tab.windowId, {format: "jpeg", quality: 20});
+                        let visionRes = await fetch("http://127.0.0.1:8000/api/v1/scan/vision", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ url: tabUrl, screenshot: dataUrl })
+                        });
+                        let vData = await visionRes.json();
+                        if (vData.risk_score >= 70) {
+                            responseData.level = "dangerous";
+                            responseData.risk_score = 95;
+                            responseData.reasons.push(vData.reason);
+                        }
+                    } catch(e) {
+                         // Lỗi capture (VD tab không active hoặc lỗi net), cho qua mềm
+                    }
+                }
+                
+                if (responseData && responseData.level === "dangerous") {
+
                     const warningsUrl = chrome.runtime.getURL("warning.html") + 
                         "?url=" + encodeURIComponent(tabUrl) +
                         "&score=" + responseData.risk_score +

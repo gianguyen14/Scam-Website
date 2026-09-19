@@ -35,3 +35,7 @@ class ScamReport(BaseModel):
     description: Optional[str] = ""
     scammer_name: Optional[str] = ""
     phishing: bool = True
+
+class VisionRequest(BaseModel):
+    url: str
+    screenshot: str # Base64

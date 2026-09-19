@@ -2,13 +2,15 @@ import os
 import sqlite3
 from src.schemas.models import ScamReport
 from fastapi import APIRouter
-from src.schemas.models import ScanRequest, ScanResponse, ModulesResult, ScamReport
+from src.schemas.models import ScanRequest, ScanResponse, ModulesResult, ScamReport, VisionRequest
+from src.api.vision_ai import AdvancedVisionAI
 
 from src.api.risk_model import CoreRiskEngine
 from src.api.url_detector import extract_url_features
 from src.schemas.models import ModulesResult, ScanRequest, ScanResponse
 
 router = APIRouter()
+vision_agent = AdvancedVisionAI()
 engine = CoreRiskEngine()
 
 @router.get("/health")
@@ -55,3 +57,26 @@ def report_scam(report: ScamReport):
     conn.commit()
     conn.close()
     return {"status": "success", "message": "Report logged into community database."}
+
+
+@router.post("/api/v1/scan/vision")
+def scan_vision(req: VisionRequest):
+    import urllib.parse
+    domain = ""
+    try:
+        domain = urllib.parse.urlparse(req.url).hostname or ""
+    except: pass
+    
+    result = vision_agent.analyze(req.screenshot, domain)
+    level = "safe"
+    if result["score"] >= 70:
+        level = "dangerous"
+    elif result["score"] > 30:
+        level = "suspicious"
+        
+    return {
+        "status": "success",
+        "risk_score": int(result["score"]),
+        "level": level,
+        "reason": result["reason"]
+    }

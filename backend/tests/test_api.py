@@ -115,3 +115,16 @@ def test_scan_api_malicious_ip(mock_dns):
     assert data["level"] == "dangerous"
     assert data["risk_score"] == 100
     assert any("Malicious Infrastructure" in r for r in data["reasons"])
+
+def test_scan_vision_api():
+    # Make a dummy 1x1 black image in base64
+    import base64
+    img_b64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+    payload = {
+        "url": "http://hacker.com/login",
+        "screenshot": img_b64
+    }
+    res = client.post("/api/v1/scan/vision", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert "status" in data
