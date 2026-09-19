@@ -18,7 +18,7 @@
   "crons": [
     {
       "path": "/api/v1/cron/update-feeds",
-      "schedule": "0 */12 * * *"
+      "schedule": "0 0 * * *"
     }
   ]
 }
