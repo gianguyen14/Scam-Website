@@ -1,10 +1,24 @@
-from fastapi import Request
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-
+from apscheduler.schedulers.background import BackgroundScheduler
+from src.api.feed_updater import update_threat_intel_feeds
 from src.api.routes import router
+import contextlib
 
-app = FastAPI(title="ScamGuard API", version="0.1.0")
+@contextlib.asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Khởi động lịch trình tự động update dữ liệu rủi ro
+    scheduler = BackgroundScheduler()
+    # Chạy lần đầu ngay lập tức
+    scheduler.add_job(update_threat_intel_feeds, 'date')
+    # Lặp lại sau mỗi 12 giờ
+    scheduler.add_job(update_threat_intel_feeds, 'interval', hours=12)
+    scheduler.start()
+    yield
+    scheduler.shutdown()
+
+app = FastAPI(title="ScamGuard API", version="0.1.0", lifespan=lifespan)
+
 
 # Restrict CORS to typical extension scheme + localhost
 app.add_middleware(

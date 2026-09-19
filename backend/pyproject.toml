@@ -8,6 +8,8 @@ dependencies = [
     "uvicorn>=0.29.0",
     "pydantic>=2.6.4",
     "redis>=5.0.0",
+    "apscheduler>=3.10.1",
+    "requests",
 ]
 
 [project.optional-dependencies]

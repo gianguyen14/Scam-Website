@@ -82,6 +82,23 @@ class DomainService:
         score = 0.0
         reasons = []
         
+        
+        # Live Feed Check (Zero-Day from OpenPhish / URLhaus)
+        try:
+            db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "community_scams.sqlite3")
+            if os.path.exists(db_path):
+                import sqlite3
+                conn = sqlite3.connect(db_path)
+                c = conn.cursor()
+                # Check root domain and subdomains
+                c.execute("SELECT source FROM live_feeds WHERE domain=?", (domain,))
+                row = c.fetchone()
+                conn.close()
+                if row:
+                    return {"known_malicious": True, "score": 100.0, "reasons": [f"Zero-Day Threat: Domain detected in Live Feed ({row[0]})"]}
+        except Exception:
+            pass
+
         # 0. Infrastructure Check (DNS Resolve -> Malicious IP Blocklist)
         resolved_ip = None
         try:
