@@ -126,7 +126,6 @@ class CoreRiskEngine:
             score += amplified_penalty
             reasons.append("Dynamic: Risk amplified due to combo of Suspicious Domain + Scam Content")
 
-        
         # --- 6. Explicit Heuristics: Gambling, Betting & Task Scams (Nhiệm vụ đơn ảo) ---
         page_text_lower = nlp_payload.lower()
         input_context_lower = page_features.get('input_context', '').lower()
@@ -135,14 +134,14 @@ class CoreRiskEngine:
         # 1. Bank/Enterprise Impersonation & Fake Urgency
         urgency_kws = ["khóa khẩn cấp", "tạm ngưng", "xác thực danh tính", "tài khoản bị khóa", 
                        "unusual login activity", "account suspended", "verify identity", "security alert"]
-        matched_urgency = [kw for kw in urgency_kws if kw in page_text_lower]
+        matched_urgency = [kw for kw in urgency_kws if kw in nlp_payload.lower()]
         if len(matched_urgency) > 0:
             score += 20
             reasons.append(f"Ngôn ngữ thúc ép/đe dọa thường thấy ở Phishing: '{matched_urgency[0]}'")
 
         # 2. Fake Authorities (Giả danh cơ quan chức năng VN)
         authority_kws = ["bộ công an", "phạt nguội", "cục cảnh sát giao thông", "thanh tra chính phủ", "chống rửa tiền"]
-        matched_auth = [kw for kw in authority_kws if kw in page_text_lower]
+        matched_auth = [kw for kw in authority_kws if kw in nlp_payload.lower()]
         if len(matched_auth) > 0 and not domain_result.get('known_safe'):
             score += 45
             reasons.append(f"Giả mạo cơ quan chức năng / Chính phủ: '{matched_auth[0]}'")
@@ -150,7 +149,7 @@ class CoreRiskEngine:
         # 3. Web3 / Crypto Drainers (Lừa đảo hốt ví tiền ảo)
         crypto_scam_kws = ["seed phrase", "secret recovery phrase", "12 words", "connect wallet to claim", 
                            "airdrop allocation", "validate your wallet", "keystore json"]
-        matched_crypto = [kw for kw in crypto_scam_kws if kw in page_text_lower or kw in input_context_lower]
+        matched_crypto = [kw for kw in crypto_scam_kws if kw in nlp_payload.lower() or kw in input_context_lower]
         if len(matched_crypto) > 0:
             score += 55
             reasons.append(f"Lừa đảo tiền mã hóa (Web3 Drainer): Đòi hỏi thông tin '{matched_crypto[0]}'")
@@ -164,13 +163,13 @@ class CoreRiskEngine:
 
         # --- 6. Explicit Heuristics: Gambling, Betting & Task Scams (Nhiệm vụ đơn ảo) ---
         gambling_kws = ["tài xỉu", "nổ hũ", "cá cược", "đá gà", "casino", "đánh bài", "nhà cái", "thể thao ảo", "lô đề"]
-        matched_gambling = [kw for kw in gambling_kws if kw in page_text_lower]
+        matched_gambling = [kw for kw in gambling_kws if kw in nlp_payload.lower()]
         if len(matched_gambling) > 0:
             score += 45
             reasons.append(f"Chứa từ khóa cờ bạc/cá cược bất hợp pháp: {', '.join(matched_gambling)}")
 
         task_scam_kws = ["tuyển cộng tác viên", "chốt đơn", "nhiệm vụ hoàn tiền", "hoa hồng cao", "việc nhẹ lương cao", "thanh toán đơn hàng", "tuyển đại lý", "hoa hồng đại lý"]
-        matched_tasks = [kw for kw in task_scam_kws if kw in page_text_lower]
+        matched_tasks = [kw for kw in task_scam_kws if kw in nlp_payload.lower()]
         if len(matched_tasks) > 0:
             score += 40
             reasons.append(f"Dấu hiệu Lừa đảo làm nhiệm vụ/CTV ảo: {', '.join(matched_tasks)}")
@@ -197,7 +196,29 @@ class CoreRiskEngine:
                 score += 50
                 reasons.append("Gian lận tín dụng: Yêu cầu thẻ tín dụng trên tên miền không đủ độ tin cậy.")
 
+        
+        # --- Advanced Vectors ---
+        # 1. Homograph attacks
+        if url_features.get('has_punycode'):
+            score += 45
+            reasons.append("Tấn công Homograph: Tên miền sử dụng ký tự giả mạo dạng Punycode (xn--).")
+
+        # 2. Fake Investment (Ponzi/BO)
+        investment_kws = ["bảo hiểm vốn", "chuyên gia đọc lệnh", "cam kết lợi nhuận", "kéo 1-1", "bot trade", "giao dịch nhị phân", "x2 tài khoản", "đầu tư thông minh"]
+        matched_invest = [kw for kw in investment_kws if kw in nlp_payload.lower()]
+        if len(matched_invest) > 0 and domain_score > 0:
+            score += 55
+            reasons.append(f"Lừa đảo Đầu tư/Đa cấp tài chính (Ponzi/BO): Hứa hẹn '{matched_invest[0]}'")
+
+        # 3. Phishing Gift / Tri ân
+        gift_kws = ["tri ân khách hàng", "nhận quà", "nhận tiền mặt", "trúng thưởng"]
+        matched_gift = [kw for kw in gift_kws if kw in nlp_payload.lower()]
+        if len(matched_gift) > 0 and (page_features.get('has_password') or "tài khoản" in page_features.get('input_context', '').lower()):
+            score += 50
+            reasons.append("Lừa đảo giải thưởng ảo: Yêu cầu thông tin ngân hàng để nhận quà.")
+
         # Compile level
+
         risk_score = int(min(max(score, 0), 100))
         
         # --- 7. Global Whitelist Override ---
