@@ -66,7 +66,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                                 
                 if (!responseData) {
                                         try {
-                        const res = await fetch("https://www.gianguyen14.tech/api/v1/scan", {
+                        const res = await fetch("http://127.0.0.1:8000/api/v1/scan", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
@@ -110,7 +110,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 if (responseData && responseData.risk_score >= 20 && responseData.risk_score < 70) {
                     try {
                         let dataUrl = await chrome.tabs.captureVisibleTab(sender.tab.windowId, {format: "jpeg", quality: 20});
-                        let visionRes = await fetch("https://www.gianguyen14.tech/api/v1/scan/vision", {
+                        let visionRes = await fetch("http://127.0.0.1:8000/api/v1/scan/vision", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ url: tabUrl, screenshot: dataUrl })

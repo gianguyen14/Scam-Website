@@ -129,7 +129,40 @@ class CoreRiskEngine:
         
         # --- 6. Explicit Heuristics: Gambling, Betting & Task Scams (Nhiệm vụ đơn ảo) ---
         page_text_lower = nlp_payload.lower()
+        input_context_lower = page_features.get('input_context', '').lower()
         
+        # --- Đại tu hệ thống Content Heuristics (Song ngữ Anh - Việt) ---
+        # 1. Bank/Enterprise Impersonation & Fake Urgency
+        urgency_kws = ["khóa khẩn cấp", "tạm ngưng", "xác thực danh tính", "tài khoản bị khóa", 
+                       "unusual login activity", "account suspended", "verify identity", "security alert"]
+        matched_urgency = [kw for kw in urgency_kws if kw in page_text_lower]
+        if len(matched_urgency) > 0:
+            score += 20
+            reasons.append(f"Ngôn ngữ thúc ép/đe dọa thường thấy ở Phishing: '{matched_urgency[0]}'")
+
+        # 2. Fake Authorities (Giả danh cơ quan chức năng VN)
+        authority_kws = ["bộ công an", "phạt nguội", "cục cảnh sát giao thông", "thanh tra chính phủ", "chống rửa tiền"]
+        matched_auth = [kw for kw in authority_kws if kw in page_text_lower]
+        if len(matched_auth) > 0 and not domain_result.get('known_safe'):
+            score += 45
+            reasons.append(f"Giả mạo cơ quan chức năng / Chính phủ: '{matched_auth[0]}'")
+
+        # 3. Web3 / Crypto Drainers (Lừa đảo hốt ví tiền ảo)
+        crypto_scam_kws = ["seed phrase", "secret recovery phrase", "12 words", "connect wallet to claim", 
+                           "airdrop allocation", "validate your wallet", "keystore json"]
+        matched_crypto = [kw for kw in crypto_scam_kws if kw in page_text_lower or kw in input_context_lower]
+        if len(matched_crypto) > 0:
+            score += 55
+            reasons.append(f"Lừa đảo tiền mã hóa (Web3 Drainer): Đòi hỏi thông tin '{matched_crypto[0]}'")
+
+        # 4. Identity Theft Input Context (Đánh hơi bối cảnh nhập liệu)
+        sensitive_inputs = ["cccd", "cmnd", "số thẻ", "mã bảo mật cvv", "mã otp", "recovery phrase", "ssn", "social security"]
+        matched_inputs = [kw for kw in sensitive_inputs if kw in input_context_lower]
+        if len(matched_inputs) > 0 and not domain_result.get('known_safe'):
+            score += 40
+            reasons.append(f"Thu thập dữ liệu nhạy cảm trái phép: Bắt nhập '{matched_inputs[0]}' trên website lạ.")
+
+        # --- 6. Explicit Heuristics: Gambling, Betting & Task Scams (Nhiệm vụ đơn ảo) ---
         gambling_kws = ["tài xỉu", "nổ hũ", "cá cược", "đá gà", "casino", "đánh bài", "nhà cái", "thể thao ảo", "lô đề"]
         matched_gambling = [kw for kw in gambling_kws if kw in page_text_lower]
         if len(matched_gambling) > 0:
