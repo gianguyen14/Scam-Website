@@ -64,6 +64,18 @@ document.addEventListener("DOMContentLoaded", async () => {
             statusMsg.appendChild(ul);
         }
 
+        
+        // Nút Reset Debug
+        const btnReset = document.getElementById("btn-reset");
+        if(btnReset) {
+            btnReset.addEventListener("click", () => {
+                chrome.storage.local.clear(() => {
+                    alert("Đã xóa Cache và mục Web bỏ qua! Hãy tải lại trang web lừa đảo.");
+                    window.close();
+                });
+            });
+        }
+
         // Tích hợp Local Dashboard
         chrome.storage.local.get({ scanHistory: [], totalScans: 0 }, (db) => {
             document.getElementById("total-scans").textContent = db.totalScans;
