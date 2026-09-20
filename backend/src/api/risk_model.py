@@ -228,9 +228,9 @@ class CoreRiskEngine:
             level = "safe"
             reasons = ["Tên miền chính thống, được xác minh an toàn 100% (Global Whitelist)."]
         else:
-            if risk_score >= 70:
+            if risk_score >= 80:
                 level = "dangerous"
-            elif risk_score >= 30:
+            elif risk_score >= 40:
                 level = "suspicious"
             else:
                 level = "safe"

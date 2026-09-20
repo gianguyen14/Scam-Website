@@ -107,7 +107,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                                 
                 // Nếu trang có rủi ro tiềm ẩn (nhưng chưa đủ điểm đấm thành dangerous),
                 // hoặc trang nhạy cảm chứa password, Kích hoạt Deep Vision AI
-                if (responseData && responseData.risk_score >= 20 && responseData.risk_score < 70) {
+                if (responseData && responseData.risk_score >= 20 && responseData.risk_score < 80) {
                     try {
                         let dataUrl = await chrome.tabs.captureVisibleTab(sender.tab.windowId, {format: "jpeg", quality: 20});
                         let visionRes = await fetch("http://127.0.0.1:8000/api/v1/scan/vision", {
@@ -116,7 +116,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                             body: JSON.stringify({ url: tabUrl, screenshot: dataUrl })
                         });
                         let vData = await visionRes.json();
-                        if (vData.risk_score >= 70) {
+                        if (vData.risk_score >= 80) {
                             responseData.level = "dangerous";
                             responseData.risk_score = 95;
                             responseData.reasons.push(vData.reason);
