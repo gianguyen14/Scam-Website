@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
     if (reasons) {
         try {
-            const reasonsList = JSON.parse(decodeURIComponent(reasons));
+            const reasonsList = JSON.parse(reasons);
             const ul = document.getElementById('reasons-list');
             reasonsList.forEach(r => {
                 const li = document.createElement('li');
