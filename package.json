@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "jsdom": "^30.0.1"
   },
   "devDependencies": {
